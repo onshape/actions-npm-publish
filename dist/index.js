@@ -103,6 +103,58 @@ module.exports._enoent = enoent;
 
 /***/ }),
 
+/***/ 22:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _validate = _interopRequireDefault(__webpack_require__(78));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function parse(uuid) {
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+
+  let v;
+  const arr = new Uint8Array(16); // Parse ########-....-....-....-............
+
+  arr[0] = (v = parseInt(uuid.slice(0, 8), 16)) >>> 24;
+  arr[1] = v >>> 16 & 0xff;
+  arr[2] = v >>> 8 & 0xff;
+  arr[3] = v & 0xff; // Parse ........-####-....-....-............
+
+  arr[4] = (v = parseInt(uuid.slice(9, 13), 16)) >>> 8;
+  arr[5] = v & 0xff; // Parse ........-....-####-....-............
+
+  arr[6] = (v = parseInt(uuid.slice(14, 18), 16)) >>> 8;
+  arr[7] = v & 0xff; // Parse ........-....-....-####-............
+
+  arr[8] = (v = parseInt(uuid.slice(19, 23), 16)) >>> 8;
+  arr[9] = v & 0xff; // Parse ........-....-....-....-############
+  // (Use "/" to avoid 32-bit truncation when bit-shifting high-order bytes)
+
+  arr[10] = (v = parseInt(uuid.slice(24, 36), 16)) / 0x10000000000 & 0xff;
+  arr[11] = v / 0x100000000 & 0xff;
+  arr[12] = v >>> 24 & 0xff;
+  arr[13] = v >>> 16 & 0xff;
+  arr[14] = v >>> 8 & 0xff;
+  arr[15] = v & 0xff;
+  return arr;
+}
+
+var _default = parse;
+exports.default = _default;
+
+/***/ }),
+
 /***/ 39:
 /***/ (function(module) {
 
@@ -211,100 +263,108 @@ main();
 
 "use strict";
 
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.npm = void 0;
-const ezSpawn = __webpack_require__(733);
-const ono_1 = __webpack_require__(271);
-const path_1 = __webpack_require__(622);
-const semver_1 = __webpack_require__(513);
-const npm_config_1 = __webpack_require__(566);
-const npm_env_1 = __webpack_require__(850);
-/**
- * Runs NPM commands.
- * @internal
- */
-exports.npm = {
-    /**
-     * Gets the latest published version of the specified package.
-     */
-    async getLatestVersion(name, options) {
-        // Update the NPM config with the specified registry and token
-        await (0, npm_config_1.setNpmConfig)(options);
-        try {
-            let command = ["npm", "view"];
-            if (options.tag === "latest") {
-                command.push(name);
-            }
-            else {
-                command.push(`${name}@${options.tag}`);
-            }
-            command.push("version");
-            // Get the environment variables to pass to NPM
-            let env = (0, npm_env_1.getNpmEnvironment)(options);
-            // Run NPM to get the latest published version of the package
-            options.debug(`Running command: npm view ${name} version`, { command, env });
-            let result;
-            try {
-                result = await ezSpawn.async(command, { env });
-            }
-            catch (err) {
-                // In case ezSpawn.async throws, it still has stdout and stderr properties.
-                result = err;
-            }
-            let version = result.stdout.trim();
-            let error = result.stderr.trim();
-            let status = result.status || 0;
-            // If the package was not previously published, return version 0.0.0.
-            if ((status === 0 && !version) || error.includes("E404")) {
-                options.debug(`The latest version of ${name} is at v0.0.0, as it was never published.`);
-                return new semver_1.SemVer("0.0.0");
-            }
-            else if (result instanceof Error) {
-                // NPM failed for some reason
-                throw result;
-            }
-            // Parse/validate the version number
-            let semver = new semver_1.SemVer(version);
-            options.debug(`The latest version of ${name} is at v${semver}`);
-            return semver;
-        }
-        catch (error) {
-            throw (0, ono_1.ono)(error, `Unable to determine the current version of ${name} on NPM.`);
-        }
-    },
-    /**
-     * Publishes the specified package to NPM
-     */
-    async publish({ name, version }, options) {
-        // Update the NPM config with the specified registry and token
-        await (0, npm_config_1.setNpmConfig)(options);
-        try {
-            let command = ["npm", "publish"];
-            if (options.tag !== "latest") {
-                command.push("--tag", options.tag);
-            }
-            if (options.access) {
-                command.push("--access", options.access);
-            }
-            if (options.dryRun) {
-                command.push("--dry-run");
-            }
-            // Run "npm publish" in the package.json directory
-            let cwd = (0, path_1.resolve)((0, path_1.dirname)(options.package));
-            // Determine whether to suppress NPM's output
-            let stdio = options.quiet ? "pipe" : "inherit";
-            // Get the environment variables to pass to NPM
-            let env = (0, npm_env_1.getNpmEnvironment)(options);
-            // Run NPM to publish the package
-            options.debug("Running command: npm publish", { command, stdio, cwd, env });
-            await ezSpawn.async(command, { cwd, stdio, env });
-        }
-        catch (error) {
-            throw (0, ono_1.ono)(error, `Unable to publish ${name} v${version} to ${options.registry}.`);
-        }
-    },
-};
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+Object.defineProperty(exports, "v1", {
+  enumerable: true,
+  get: function () {
+    return _v.default;
+  }
+});
+Object.defineProperty(exports, "v3", {
+  enumerable: true,
+  get: function () {
+    return _v2.default;
+  }
+});
+Object.defineProperty(exports, "v4", {
+  enumerable: true,
+  get: function () {
+    return _v3.default;
+  }
+});
+Object.defineProperty(exports, "v5", {
+  enumerable: true,
+  get: function () {
+    return _v4.default;
+  }
+});
+Object.defineProperty(exports, "NIL", {
+  enumerable: true,
+  get: function () {
+    return _nil.default;
+  }
+});
+Object.defineProperty(exports, "version", {
+  enumerable: true,
+  get: function () {
+    return _version.default;
+  }
+});
+Object.defineProperty(exports, "validate", {
+  enumerable: true,
+  get: function () {
+    return _validate.default;
+  }
+});
+Object.defineProperty(exports, "stringify", {
+  enumerable: true,
+  get: function () {
+    return _stringify.default;
+  }
+});
+Object.defineProperty(exports, "parse", {
+  enumerable: true,
+  get: function () {
+    return _parse.default;
+  }
+});
+
+var _v = _interopRequireDefault(__webpack_require__(893));
+
+var _v2 = _interopRequireDefault(__webpack_require__(209));
+
+var _v3 = _interopRequireDefault(__webpack_require__(733));
+
+var _v4 = _interopRequireDefault(__webpack_require__(384));
+
+var _nil = _interopRequireDefault(__webpack_require__(327));
+
+var _version = _interopRequireDefault(__webpack_require__(695));
+
+var _validate = _interopRequireDefault(__webpack_require__(78));
+
+var _stringify = _interopRequireDefault(__webpack_require__(411));
+
+var _parse = _interopRequireDefault(__webpack_require__(22));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/***/ }),
+
+/***/ 78:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _regex = _interopRequireDefault(__webpack_require__(456));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function validate(uuid) {
+  return typeof uuid === 'string' && _regex.default.test(uuid);
+}
+
+var _default = validate;
+exports.default = _default;
 
 /***/ }),
 
@@ -388,13 +448,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.issueCommand = void 0;
+exports.prepareKeyValueMessage = exports.issueFileCommand = void 0;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const fs = __importStar(__webpack_require__(747));
 const os = __importStar(__webpack_require__(87));
+const uuid_1 = __webpack_require__(62);
 const utils_1 = __webpack_require__(82);
-function issueCommand(command, message) {
+function issueFileCommand(command, message) {
     const filePath = process.env[`GITHUB_${command}`];
     if (!filePath) {
         throw new Error(`Unable to find environment variable for file command ${command}`);
@@ -406,117 +467,58 @@ function issueCommand(command, message) {
         encoding: 'utf8'
     });
 }
-exports.issueCommand = issueCommand;
+exports.issueFileCommand = issueFileCommand;
+function prepareKeyValueMessage(key, value) {
+    const delimiter = `ghadelimiter_${uuid_1.v4()}`;
+    const convertedValue = utils_1.toCommandValue(value);
+    // These should realistically never happen, but just in case someone finds a
+    // way to exploit uuid generation let's not allow keys or values that contain
+    // the delimiter.
+    if (key.includes(delimiter)) {
+        throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
+    }
+    if (convertedValue.includes(delimiter)) {
+        throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
+    }
+    return `${key}<<${delimiter}${os.EOL}${convertedValue}${os.EOL}${delimiter}`;
+}
+exports.prepareKeyValueMessage = prepareKeyValueMessage;
 //# sourceMappingURL=file-command.js.map
 
 /***/ }),
 
-/***/ 116:
-/***/ (function(__unusedmodule, exports) {
+/***/ 106:
+/***/ (function(module) {
 
 "use strict";
 
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.lazyJoinStacks = exports.joinStacks = exports.isWritableStack = exports.isLazyStack = void 0;
-const newline = /\r?\n/;
-const onoCall = /\bono[ @]/;
-/**
- * Is the property lazily computed?
- */
-function isLazyStack(stackProp) {
-    return Boolean(stackProp &&
-        stackProp.configurable &&
-        typeof stackProp.get === "function");
-}
-exports.isLazyStack = isLazyStack;
-/**
- * Is the stack property writable?
- */
-function isWritableStack(stackProp) {
-    return Boolean(
-    // If there is no stack property, then it's writable, since assigning it will create it
-    !stackProp ||
-        stackProp.writable ||
-        typeof stackProp.set === "function");
-}
-exports.isWritableStack = isWritableStack;
-/**
- * Appends the original `Error.stack` property to the new Error's stack.
- */
-function joinStacks(newError, originalError) {
-    let newStack = popStack(newError.stack);
-    let originalStack = originalError ? originalError.stack : undefined;
-    if (newStack && originalStack) {
-        return newStack + "\n\n" + originalStack;
+
+function makeNext () {
+  if (typeof process === 'object' && typeof process.nextTick === 'function') {
+    return process.nextTick
+  } else if (typeof setImmediate === 'function') {
+    return setImmediate
+  } else {
+    return function next (f) {
+      setTimeout(f, 0)
     }
-    else {
-        return newStack || originalStack;
-    }
+  }
 }
-exports.joinStacks = joinStacks;
-/**
- * Calls `joinStacks` lazily, when the `Error.stack` property is accessed.
- */
-function lazyJoinStacks(lazyStack, newError, originalError) {
-    if (originalError) {
-        Object.defineProperty(newError, "stack", {
-            get: () => {
-                let newStack = lazyStack.get.apply(newError);
-                return joinStacks({ stack: newStack }, originalError);
-            },
-            enumerable: false,
-            configurable: true
-        });
-    }
-    else {
-        lazyPopStack(newError, lazyStack);
-    }
-}
-exports.lazyJoinStacks = lazyJoinStacks;
-/**
- * Removes Ono from the stack, so that the stack starts at the original error location
- */
-function popStack(stack) {
-    if (stack) {
-        let lines = stack.split(newline);
-        // Find the Ono call(s) in the stack, and remove them
-        let onoStart;
-        for (let i = 0; i < lines.length; i++) {
-            let line = lines[i];
-            if (onoCall.test(line)) {
-                if (onoStart === undefined) {
-                    // We found the first Ono call in the stack trace.
-                    // There may be other subsequent Ono calls as well.
-                    onoStart = i;
-                }
-            }
-            else if (onoStart !== undefined) {
-                // We found the first non-Ono call after one or more Ono calls.
-                // So remove the Ono call lines from the stack trace
-                lines.splice(onoStart, i - onoStart);
-                break;
-            }
-        }
-        if (lines.length > 0) {
-            return lines.join("\n");
-        }
-    }
-    // If we get here, then the stack doesn't contain a call to `ono`.
-    // This may be due to minification or some optimization of the JS engine.
-    // So just return the stack as-is.
-    return stack;
-}
-/**
- * Calls `popStack` lazily, when the `Error.stack` property is accessed.
- */
-function lazyPopStack(error, lazyStack) {
-    Object.defineProperty(error, "stack", {
-        get: () => popStack(lazyStack.get.apply(error)),
-        enumerable: false,
-        configurable: true
-    });
-}
-//# sourceMappingURL=stack.js.map
+
+module.exports = makeNext()
+
+
+/***/ }),
+
+/***/ 116:
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports.sync = __webpack_require__(328);
+module.exports.async = __webpack_require__(983);
+
 
 /***/ }),
 
@@ -524,6 +526,32 @@ function lazyPopStack(error, lazyStack) {
 /***/ (function(module) {
 
 module.exports = require("child_process");
+
+/***/ }),
+
+/***/ 137:
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+var next = __webpack_require__(106)
+
+module.exports = function maybe (cb, promise) {
+  if (cb) {
+    promise
+      .then(function (result) {
+        next(function () { cb(null, result) })
+      }, function (err) {
+        next(function () { cb(err) })
+      })
+    return undefined
+  }
+  else {
+    return promise
+  }
+}
+
 
 /***/ }),
 
@@ -826,6 +854,115 @@ module.exports = class ProcessError extends Error {
 
 /***/ }),
 
+/***/ 167:
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.lazyJoinStacks = exports.joinStacks = exports.isWritableStack = exports.isLazyStack = void 0;
+const newline = /\r?\n/;
+const onoCall = /\bono[ @]/;
+/**
+ * Is the property lazily computed?
+ */
+function isLazyStack(stackProp) {
+    return Boolean(stackProp &&
+        stackProp.configurable &&
+        typeof stackProp.get === "function");
+}
+exports.isLazyStack = isLazyStack;
+/**
+ * Is the stack property writable?
+ */
+function isWritableStack(stackProp) {
+    return Boolean(
+    // If there is no stack property, then it's writable, since assigning it will create it
+    !stackProp ||
+        stackProp.writable ||
+        typeof stackProp.set === "function");
+}
+exports.isWritableStack = isWritableStack;
+/**
+ * Appends the original `Error.stack` property to the new Error's stack.
+ */
+function joinStacks(newError, originalError) {
+    let newStack = popStack(newError.stack);
+    let originalStack = originalError ? originalError.stack : undefined;
+    if (newStack && originalStack) {
+        return newStack + "\n\n" + originalStack;
+    }
+    else {
+        return newStack || originalStack;
+    }
+}
+exports.joinStacks = joinStacks;
+/**
+ * Calls `joinStacks` lazily, when the `Error.stack` property is accessed.
+ */
+function lazyJoinStacks(lazyStack, newError, originalError) {
+    if (originalError) {
+        Object.defineProperty(newError, "stack", {
+            get: () => {
+                let newStack = lazyStack.get.apply(newError);
+                return joinStacks({ stack: newStack }, originalError);
+            },
+            enumerable: false,
+            configurable: true
+        });
+    }
+    else {
+        lazyPopStack(newError, lazyStack);
+    }
+}
+exports.lazyJoinStacks = lazyJoinStacks;
+/**
+ * Removes Ono from the stack, so that the stack starts at the original error location
+ */
+function popStack(stack) {
+    if (stack) {
+        let lines = stack.split(newline);
+        // Find the Ono call(s) in the stack, and remove them
+        let onoStart;
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+            if (onoCall.test(line)) {
+                if (onoStart === undefined) {
+                    // We found the first Ono call in the stack trace.
+                    // There may be other subsequent Ono calls as well.
+                    onoStart = i;
+                }
+            }
+            else if (onoStart !== undefined) {
+                // We found the first non-Ono call after one or more Ono calls.
+                // So remove the Ono call lines from the stack trace
+                lines.splice(onoStart, i - onoStart);
+                break;
+            }
+        }
+        if (lines.length > 0) {
+            return lines.join("\n");
+        }
+    }
+    // If we get here, then the stack doesn't contain a call to `ono`.
+    // This may be due to minification or some optimization of the JS engine.
+    // So just return the stack as-is.
+    return stack;
+}
+/**
+ * Calls `popStack` lazily, when the `Error.stack` property is accessed.
+ */
+function lazyPopStack(error, lazyStack) {
+    Object.defineProperty(error, "stack", {
+        get: () => popStack(lazyStack.get.apply(error)),
+        enumerable: false,
+        configurable: true
+    });
+}
+//# sourceMappingURL=stack.js.map
+
+/***/ }),
+
 /***/ 177:
 /***/ (function(__unusedmodule, exports) {
 
@@ -858,6 +995,10 @@ function checkBypass(reqUrl) {
     if (!reqUrl.hostname) {
         return false;
     }
+    const reqHost = reqUrl.hostname;
+    if (isLoopbackAddress(reqHost)) {
+        return true;
+    }
     const noProxy = process.env['no_proxy'] || process.env['NO_PROXY'] || '';
     if (!noProxy) {
         return false;
@@ -883,13 +1024,24 @@ function checkBypass(reqUrl) {
         .split(',')
         .map(x => x.trim().toUpperCase())
         .filter(x => x)) {
-        if (upperReqHosts.some(x => x === upperNoProxyItem)) {
+        if (upperNoProxyItem === '*' ||
+            upperReqHosts.some(x => x === upperNoProxyItem ||
+                x.endsWith(`.${upperNoProxyItem}`) ||
+                (upperNoProxyItem.startsWith('.') &&
+                    x.endsWith(`${upperNoProxyItem}`)))) {
             return true;
         }
     }
     return false;
 }
 exports.checkBypass = checkBypass;
+function isLoopbackAddress(host) {
+    const hostLower = host.toLowerCase();
+    return (hostLower === 'localhost' ||
+        hostLower.startsWith('127.') ||
+        hostLower.startsWith('[::1]') ||
+        hostLower.startsWith('[0:0:0:0:0:0:0:1]'));
+}
 //# sourceMappingURL=proxy.js.map
 
 /***/ }),
@@ -942,10 +1094,220 @@ function checkMode (stat, options) {
 
 /***/ }),
 
+/***/ 204:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.npm = void 0;
+const ezSpawn = __webpack_require__(116);
+const ono_1 = __webpack_require__(271);
+const path_1 = __webpack_require__(622);
+const semver_1 = __webpack_require__(513);
+const npm_config_1 = __webpack_require__(566);
+const npm_env_1 = __webpack_require__(850);
+/**
+ * Runs NPM commands.
+ * @internal
+ */
+exports.npm = {
+    /**
+     * Gets the latest published version of the specified package.
+     */
+    async getLatestVersion(name, options) {
+        // Update the NPM config with the specified registry and token
+        await (0, npm_config_1.setNpmConfig)(options);
+        try {
+            let command = ["npm", "view"];
+            if (options.tag === "latest") {
+                command.push(name);
+            }
+            else {
+                command.push(`${name}@${options.tag}`);
+            }
+            command.push("version");
+            // Get the environment variables to pass to NPM
+            let env = (0, npm_env_1.getNpmEnvironment)(options);
+            // Run NPM to get the latest published version of the package
+            options.debug(`Running command: npm view ${name} version`, { command, env });
+            let result;
+            try {
+                result = await ezSpawn.async(command, { env });
+            }
+            catch (err) {
+                // In case ezSpawn.async throws, it still has stdout and stderr properties.
+                result = err;
+            }
+            let version = result.stdout.trim();
+            let error = result.stderr.trim();
+            let status = result.status || 0;
+            // If the package was not previously published, return version 0.0.0.
+            if ((status === 0 && !version) || error.includes("E404")) {
+                options.debug(`The latest version of ${name} is at v0.0.0, as it was never published.`);
+                return new semver_1.SemVer("0.0.0");
+            }
+            else if (result instanceof Error) {
+                // NPM failed for some reason
+                throw result;
+            }
+            // Parse/validate the version number
+            let semver = new semver_1.SemVer(version);
+            options.debug(`The latest version of ${name} is at v${semver}`);
+            return semver;
+        }
+        catch (error) {
+            throw (0, ono_1.ono)(error, `Unable to determine the current version of ${name} on NPM.`);
+        }
+    },
+    /**
+     * Publishes the specified package to NPM
+     */
+    async publish({ name, version }, options) {
+        // Update the NPM config with the specified registry and token
+        await (0, npm_config_1.setNpmConfig)(options);
+        try {
+            let command = ["npm", "publish"];
+            if (options.tag !== "latest") {
+                command.push("--tag", options.tag);
+            }
+            if (options.access) {
+                command.push("--access", options.access);
+            }
+            if (options.dryRun) {
+                command.push("--dry-run");
+            }
+            // Run "npm publish" in the package.json directory
+            let cwd = (0, path_1.resolve)((0, path_1.dirname)(options.package));
+            // Determine whether to suppress NPM's output
+            let stdio = options.quiet ? "pipe" : "inherit";
+            // Get the environment variables to pass to NPM
+            let env = (0, npm_env_1.getNpmEnvironment)(options);
+            // Run NPM to publish the package
+            options.debug("Running command: npm publish", { command, stdio, cwd, env });
+            await ezSpawn.async(command, { cwd, stdio, env });
+        }
+        catch (error) {
+            throw (0, ono_1.ono)(error, `Unable to publish ${name} v${version} to ${options.registry}.`);
+        }
+    },
+};
+
+
+/***/ }),
+
+/***/ 209:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _v = _interopRequireDefault(__webpack_require__(212));
+
+var _md = _interopRequireDefault(__webpack_require__(803));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const v3 = (0, _v.default)('v3', 0x30, _md.default);
+var _default = v3;
+exports.default = _default;
+
+/***/ }),
+
 /***/ 211:
 /***/ (function(module) {
 
 module.exports = require("https");
+
+/***/ }),
+
+/***/ 212:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = _default;
+exports.URL = exports.DNS = void 0;
+
+var _stringify = _interopRequireDefault(__webpack_require__(411));
+
+var _parse = _interopRequireDefault(__webpack_require__(22));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function stringToBytes(str) {
+  str = unescape(encodeURIComponent(str)); // UTF8 escape
+
+  const bytes = [];
+
+  for (let i = 0; i < str.length; ++i) {
+    bytes.push(str.charCodeAt(i));
+  }
+
+  return bytes;
+}
+
+const DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+exports.DNS = DNS;
+const URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
+exports.URL = URL;
+
+function _default(name, version, hashfunc) {
+  function generateUUID(value, namespace, buf, offset) {
+    if (typeof value === 'string') {
+      value = stringToBytes(value);
+    }
+
+    if (typeof namespace === 'string') {
+      namespace = (0, _parse.default)(namespace);
+    }
+
+    if (namespace.length !== 16) {
+      throw TypeError('Namespace must be array-like (16 iterable integer values, 0-255)');
+    } // Compute hash of namespace and value, Per 4.3
+    // Future: Use spread syntax when supported on all platforms, e.g. `bytes =
+    // hashfunc([...namespace, ... value])`
+
+
+    let bytes = new Uint8Array(16 + value.length);
+    bytes.set(namespace);
+    bytes.set(value, namespace.length);
+    bytes = hashfunc(bytes);
+    bytes[6] = bytes[6] & 0x0f | version;
+    bytes[8] = bytes[8] & 0x3f | 0x80;
+
+    if (buf) {
+      offset = offset || 0;
+
+      for (let i = 0; i < 16; ++i) {
+        buf[offset + i] = bytes[i];
+      }
+
+      return buf;
+    }
+
+    return (0, _stringify.default)(bytes);
+  } // Function#name is not settable on some platforms (#270)
+
+
+  try {
+    generateUUID.name = name; // eslint-disable-next-line no-empty
+  } catch (err) {} // For CommonJS default export support
+
+
+  generateUUID.DNS = DNS;
+  generateUUID.URL = URL;
+  return generateUUID;
+}
 
 /***/ }),
 
@@ -1034,7 +1396,7 @@ exports.readManifest = readManifest;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.extendError = void 0;
 const isomorphic_node_1 = __webpack_require__(757);
-const stack_1 = __webpack_require__(116);
+const stack_1 = __webpack_require__(167);
 const to_json_1 = __webpack_require__(483);
 const protectedProps = ["name", "message", "stack"];
 /**
@@ -1110,6 +1472,21 @@ function mergeErrors(newError, originalError) {
 
 /***/ }),
 
+/***/ 327:
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+var _default = '00000000-0000-0000-0000-000000000000';
+exports.default = _default;
+
+/***/ }),
+
 /***/ 328:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
@@ -1167,6 +1544,29 @@ module.exports = require("assert");
 
 /***/ }),
 
+/***/ 384:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _v = _interopRequireDefault(__webpack_require__(212));
+
+var _sha = _interopRequireDefault(__webpack_require__(498));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const v5 = (0, _v.default)('v5', 0x50, _sha.default);
+var _default = v5;
+exports.default = _default;
+
+/***/ }),
+
 /***/ 389:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
@@ -1198,11 +1598,64 @@ module.exports = readShebang;
 
 /***/ }),
 
+/***/ 411:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _validate = _interopRequireDefault(__webpack_require__(78));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * Convert array of 16 byte values to UUID string format of the form:
+ * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+ */
+const byteToHex = [];
+
+for (let i = 0; i < 256; ++i) {
+  byteToHex.push((i + 0x100).toString(16).substr(1));
+}
+
+function stringify(arr, offset = 0) {
+  // Note: Be careful editing this code!  It's been tuned for performance
+  // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
+  const uuid = (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase(); // Consistency check for valid UUID.  If this throws, it's likely due to one
+  // of the following:
+  // - One or more input array values don't map to a hex octet (leading to
+  // "undefined" in the uuid)
+  // - Invalid input values for the RFC `version` or `variant` fields
+
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Stringified UUID is invalid');
+  }
+
+  return uuid;
+}
+
+var _default = stringify;
+exports.default = _default;
+
+/***/ }),
+
 /***/ 413:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
 module.exports = __webpack_require__(141);
 
+
+/***/ }),
+
+/***/ 417:
+/***/ (function(module) {
+
+module.exports = require("crypto");
 
 /***/ }),
 
@@ -1928,6 +2381,21 @@ function escapeProperty(s) {
 
 /***/ }),
 
+/***/ 456:
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+var _default = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
+exports.default = _default;
+
+/***/ }),
+
 /***/ 462:
 /***/ (function(module) {
 
@@ -2050,13 +2518,9 @@ function exportVariable(name, val) {
     process.env[name] = convertedVal;
     const filePath = process.env['GITHUB_ENV'] || '';
     if (filePath) {
-        const delimiter = '_GitHubActionsFileCommandDelimeter_';
-        const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`;
-        file_command_1.issueCommand('ENV', commandValue);
+        return file_command_1.issueFileCommand('ENV', file_command_1.prepareKeyValueMessage(name, val));
     }
-    else {
-        command_1.issueCommand('set-env', { name }, convertedVal);
-    }
+    command_1.issueCommand('set-env', { name }, convertedVal);
 }
 exports.exportVariable = exportVariable;
 /**
@@ -2074,7 +2538,7 @@ exports.setSecret = setSecret;
 function addPath(inputPath) {
     const filePath = process.env['GITHUB_PATH'] || '';
     if (filePath) {
-        file_command_1.issueCommand('PATH', inputPath);
+        file_command_1.issueFileCommand('PATH', inputPath);
     }
     else {
         command_1.issueCommand('add-path', {}, inputPath);
@@ -2114,7 +2578,10 @@ function getMultilineInput(name, options) {
     const inputs = getInput(name, options)
         .split('\n')
         .filter(x => x !== '');
-    return inputs;
+    if (options && options.trimWhitespace === false) {
+        return inputs;
+    }
+    return inputs.map(input => input.trim());
 }
 exports.getMultilineInput = getMultilineInput;
 /**
@@ -2147,8 +2614,12 @@ exports.getBooleanInput = getBooleanInput;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function setOutput(name, value) {
+    const filePath = process.env['GITHUB_OUTPUT'] || '';
+    if (filePath) {
+        return file_command_1.issueFileCommand('OUTPUT', file_command_1.prepareKeyValueMessage(name, value));
+    }
     process.stdout.write(os.EOL);
-    command_1.issueCommand('set-output', { name }, value);
+    command_1.issueCommand('set-output', { name }, utils_1.toCommandValue(value));
 }
 exports.setOutput = setOutput;
 /**
@@ -2277,7 +2748,11 @@ exports.group = group;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function saveState(name, value) {
-    command_1.issueCommand('save-state', { name }, value);
+    const filePath = process.env['GITHUB_STATE'] || '';
+    if (filePath) {
+        return file_command_1.issueFileCommand('STATE', file_command_1.prepareKeyValueMessage(name, value));
+    }
+    command_1.issueCommand('save-state', { name }, utils_1.toCommandValue(value));
 }
 exports.saveState = saveState;
 /**
@@ -2306,6 +2781,13 @@ Object.defineProperty(exports, "summary", { enumerable: true, get: function () {
  */
 var summary_2 = __webpack_require__(665);
 Object.defineProperty(exports, "markdownSummary", { enumerable: true, get: function () { return summary_2.markdownSummary; } });
+/**
+ * Path exports
+ */
+var path_utils_1 = __webpack_require__(573);
+Object.defineProperty(exports, "toPosixPath", { enumerable: true, get: function () { return path_utils_1.toPosixPath; } });
+Object.defineProperty(exports, "toWin32Path", { enumerable: true, get: function () { return path_utils_1.toWin32Path; } });
+Object.defineProperty(exports, "toPlatformPath", { enumerable: true, get: function () { return path_utils_1.toPlatformPath; } });
 //# sourceMappingURL=core.js.map
 
 /***/ }),
@@ -2422,6 +2904,36 @@ function resolveCommand(parsed) {
 
 module.exports = resolveCommand;
 
+
+/***/ }),
+
+/***/ 498:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _crypto = _interopRequireDefault(__webpack_require__(417));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function sha1(bytes) {
+  if (Array.isArray(bytes)) {
+    bytes = Buffer.from(bytes);
+  } else if (typeof bytes === 'string') {
+    bytes = Buffer.from(bytes, 'utf8');
+  }
+
+  return _crypto.default.createHash('sha1').update(bytes).digest();
+}
+
+var _default = sha1;
+exports.default = _default;
 
 /***/ }),
 
@@ -2581,7 +3093,7 @@ exports.PersonalAccessTokenCredentialHandler = PersonalAccessTokenCredentialHand
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setNpmConfig = void 0;
-const ezSpawn = __webpack_require__(733);
+const ezSpawn = __webpack_require__(116);
 const ono_1 = __webpack_require__(271);
 const fs_1 = __webpack_require__(747);
 const os_1 = __webpack_require__(87);
@@ -2762,6 +3274,71 @@ function parse(command, args, options) {
 
 module.exports = parse;
 
+
+/***/ }),
+
+/***/ 573:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.toPlatformPath = exports.toWin32Path = exports.toPosixPath = void 0;
+const path = __importStar(__webpack_require__(622));
+/**
+ * toPosixPath converts the given path to the posix form. On Windows, \\ will be
+ * replaced with /.
+ *
+ * @param pth. Path to transform.
+ * @return string Posix path.
+ */
+function toPosixPath(pth) {
+    return pth.replace(/[\\]/g, '/');
+}
+exports.toPosixPath = toPosixPath;
+/**
+ * toWin32Path converts the given path to the win32 form. On Linux, / will be
+ * replaced with \\.
+ *
+ * @param pth. Path to transform.
+ * @return string Win32 path.
+ */
+function toWin32Path(pth) {
+    return pth.replace(/[/]/g, '\\');
+}
+exports.toWin32Path = toWin32Path;
+/**
+ * toPlatformPath converts the given path to a platform-specific path. It does
+ * this by replacing instances of / and \ with the platform-specific path
+ * separator.
+ *
+ * @param pth The path to platformize.
+ * @return string The platform-specific path.
+ */
+function toPlatformPath(pth) {
+    return pth.replace(/[/\\]/g, path.sep);
+}
+exports.toPlatformPath = toPlatformPath;
+//# sourceMappingURL=path-utils.js.map
 
 /***/ }),
 
@@ -3550,6 +4127,34 @@ exports.normalizeArgs = normalizeArgs;
 
 /***/ }),
 
+/***/ 695:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _validate = _interopRequireDefault(__webpack_require__(78));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function version(uuid) {
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+
+  return parseInt(uuid.substr(14, 1), 16);
+}
+
+var _default = version;
+exports.default = _default;
+
+/***/ }),
+
 /***/ 700:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
@@ -3595,14 +4200,46 @@ function normalizeResult ({ command, args, pid, stdout, stderr, output, status, 
 /***/ }),
 
 /***/ 733:
-/***/ (function(module, __unusedexports, __webpack_require__) {
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
 
 
-module.exports.sync = __webpack_require__(328);
-module.exports.async = __webpack_require__(983);
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
 
+var _rng = _interopRequireDefault(__webpack_require__(844));
+
+var _stringify = _interopRequireDefault(__webpack_require__(411));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function v4(options, buf, offset) {
+  options = options || {};
+
+  const rnds = options.random || (options.rng || _rng.default)(); // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+
+
+  rnds[6] = rnds[6] & 0x0f | 0x40;
+  rnds[8] = rnds[8] & 0x3f | 0x80; // Copy bytes to buffer, if provided
+
+  if (buf) {
+    offset = offset || 0;
+
+    for (let i = 0; i < 16; ++i) {
+      buf[offset + i] = rnds[i];
+    }
+
+    return buf;
+  }
+
+  return (0, _stringify.default)(rnds);
+}
+
+var _default = v4;
+exports.default = _default;
 
 /***/ }),
 
@@ -3838,7 +4475,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.npmPublish = void 0;
 const semver = __webpack_require__(513);
 const normalize_options_1 = __webpack_require__(751);
-const npm_1 = __webpack_require__(62);
+const npm_1 = __webpack_require__(204);
 const read_manifest_1 = __webpack_require__(292);
 /**
  * Publishes a package to NPM, if its version has changed
@@ -3880,31 +4517,33 @@ exports.npmPublish = npmPublish;
 
 /***/ }),
 
-/***/ 791:
-/***/ (function(module) {
+/***/ 803:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
 
 
-var next = (global.process && process.nextTick) || global.setImmediate || function (f) {
-  setTimeout(f, 0)
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _crypto = _interopRequireDefault(__webpack_require__(417));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function md5(bytes) {
+  if (Array.isArray(bytes)) {
+    bytes = Buffer.from(bytes);
+  } else if (typeof bytes === 'string') {
+    bytes = Buffer.from(bytes, 'utf8');
+  }
+
+  return _crypto.default.createHash('md5').update(bytes).digest();
 }
 
-module.exports = function maybe (cb, promise) {
-  if (cb) {
-    promise
-      .then(function (result) {
-        next(function () { cb(null, result) })
-      }, function (err) {
-        next(function () { cb(err) })
-      })
-    return undefined
-  }
-  else {
-    return promise
-  }
-}
-
+var _default = md5;
+exports.default = _default;
 
 /***/ }),
 
@@ -4167,6 +4806,37 @@ function sync (path, options) {
 /***/ (function(module) {
 
 module.exports = require("url");
+
+/***/ }),
+
+/***/ 844:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = rng;
+
+var _crypto = _interopRequireDefault(__webpack_require__(417));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const rnds8Pool = new Uint8Array(256); // # of random values to pre-allocate
+
+let poolPtr = rnds8Pool.length;
+
+function rng() {
+  if (poolPtr > rnds8Pool.length - 16) {
+    _crypto.default.randomFillSync(rnds8Pool);
+
+    poolPtr = 0;
+  }
+
+  return rnds8Pool.slice(poolPtr, poolPtr += 16);
+}
 
 /***/ }),
 
@@ -4519,6 +5189,120 @@ module.exports = {
 
 /***/ }),
 
+/***/ 893:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _rng = _interopRequireDefault(__webpack_require__(844));
+
+var _stringify = _interopRequireDefault(__webpack_require__(411));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// **`v1()` - Generate time-based UUID**
+//
+// Inspired by https://github.com/LiosK/UUID.js
+// and http://docs.python.org/library/uuid.html
+let _nodeId;
+
+let _clockseq; // Previous uuid creation time
+
+
+let _lastMSecs = 0;
+let _lastNSecs = 0; // See https://github.com/uuidjs/uuid for API details
+
+function v1(options, buf, offset) {
+  let i = buf && offset || 0;
+  const b = buf || new Array(16);
+  options = options || {};
+  let node = options.node || _nodeId;
+  let clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq; // node and clockseq need to be initialized to random values if they're not
+  // specified.  We do this lazily to minimize issues related to insufficient
+  // system entropy.  See #189
+
+  if (node == null || clockseq == null) {
+    const seedBytes = options.random || (options.rng || _rng.default)();
+
+    if (node == null) {
+      // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+      node = _nodeId = [seedBytes[0] | 0x01, seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]];
+    }
+
+    if (clockseq == null) {
+      // Per 4.2.2, randomize (14 bit) clockseq
+      clockseq = _clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
+    }
+  } // UUID timestamps are 100 nano-second units since the Gregorian epoch,
+  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
+  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
+  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
+
+
+  let msecs = options.msecs !== undefined ? options.msecs : Date.now(); // Per 4.2.1.2, use count of uuid's generated during the current clock
+  // cycle to simulate higher resolution clock
+
+  let nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1; // Time since last uuid creation (in msecs)
+
+  const dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000; // Per 4.2.1.2, Bump clockseq on clock regression
+
+  if (dt < 0 && options.clockseq === undefined) {
+    clockseq = clockseq + 1 & 0x3fff;
+  } // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
+  // time interval
+
+
+  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
+    nsecs = 0;
+  } // Per 4.2.1.2 Throw error if too many uuids are requested
+
+
+  if (nsecs >= 10000) {
+    throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
+  }
+
+  _lastMSecs = msecs;
+  _lastNSecs = nsecs;
+  _clockseq = clockseq; // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
+
+  msecs += 12219292800000; // `time_low`
+
+  const tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
+  b[i++] = tl >>> 24 & 0xff;
+  b[i++] = tl >>> 16 & 0xff;
+  b[i++] = tl >>> 8 & 0xff;
+  b[i++] = tl & 0xff; // `time_mid`
+
+  const tmh = msecs / 0x100000000 * 10000 & 0xfffffff;
+  b[i++] = tmh >>> 8 & 0xff;
+  b[i++] = tmh & 0xff; // `time_high_and_version`
+
+  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
+
+  b[i++] = tmh >>> 16 & 0xff; // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
+
+  b[i++] = clockseq >>> 8 | 0x80; // `clock_seq_low`
+
+  b[i++] = clockseq & 0xff; // `node`
+
+  for (let n = 0; n < 6; ++n) {
+    b[i + n] = node[n];
+  }
+
+  return buf || (0, _stringify.default)(b);
+}
+
+var _default = v1;
+exports.default = _default;
+
+/***/ }),
+
 /***/ 920:
 /***/ (function(module) {
 
@@ -4685,7 +5469,7 @@ function firstString() {
 
 const normalizeArgs = __webpack_require__(874);
 const normalizeResult = __webpack_require__(700);
-const maybe = __webpack_require__(791);
+const maybe = __webpack_require__(137);
 const spawn = __webpack_require__(20);
 
 module.exports = async;
