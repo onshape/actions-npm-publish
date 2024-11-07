@@ -1,0 +1,38 @@
+# See the documentation for all configuration options:
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  # Update npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      lint:
+        patterns:
+          - "*eslint*"
+          - "*prettier*"
+          - "*types*"
+      production:
+        dependency-type: "production"
+      development:
+        dependency-type: "development"
+
+    ignore:
+      # TODO(mcous, 2024-07-06): update to ESLint v9 + flat config
+      - dependency-name: "eslint"
+        versions: [">=9"]
+      # rimraf dropped support for ESLint v18
+      - dependency-name: "rimraf"
+        versions: [">=6"]
+
+  # Update GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      actions:
+        patterns:
+          - "*"

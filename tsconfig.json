@@ -1,31 +1,36 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    // target Node v16 / ES2021
+    "target": "es2021",
     "module": "commonjs",
     "moduleResolution": "node",
+    "resolveJsonModule": true,
 
-    "outDir": "lib",
-    "sourceMap": true,
-    "declaration": false,
+    // Interoperability with CommonJS modules
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
 
-    "newLine": "LF",
-    "forceConsistentCasingInFileNames": true,
+    // Do not error out for errors in third-party modules
+    "skipLibCheck": true,
+
+    // Type-checking options
+    "strict": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "exactOptionalPropertyTypes": true,
     "noFallthroughCasesInSwitch": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "strictBindCallApply": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true,
-    "stripInternal": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
 
-    "typeRoots": [
-      "node_modules/@types"
-    ]
+    // inputs and outputs
+    "declaration": true,
+    "sourceMap": true,
+    "rootDir": "src",
+    "outDir": "lib"
   },
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["src/**/*.ts"]
 }
